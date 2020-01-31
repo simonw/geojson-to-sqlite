@@ -6,14 +6,6 @@ workflows:
           filters:
             tags:
               only: /.*/
-      - test-python-install:
-          version: "3.6"
-          requires:
-            - build
-      - test-python-install:
-          version: "3.7"
-          requires:
-            - build
       - deploy:
           requires:
             - build
@@ -25,44 +17,16 @@ workflows:
 jobs:
   build:
     docker:
-      - image: circleci/python:3.6
+      - image: circleci/python:3.8
     steps:
       - checkout
       - restore_cache:
           key: v1-dependency-cache-{{ checksum "setup.py" }}
       - run:
-          name: Installe mod_spatialite
+          name: Install mod_spatialite
           command: |
             sudo apt-get update
-            sudo apt-get install libsqlite3-mod-spatialite
-      - run:
-          name: install python dependencies
-          command: |
-            python3 -m venv venv
-            . venv/bin/activate
-            pip install -e .
-      - save_cache:
-          key: v1-dependency-cache-{{ checksum "setup.py" }}
-          paths:
-            - "venv"
-      - run:
-          name: run tests
-          command: |
-            . venv/bin/activate
-            pip install -e .
-            pip install pytest
-            pytest
-  test-python-install:
-    parameters:
-      version:
-        type: string
-        default: latest
-    docker:
-      - image: circleci/python:3.6
-    steps:
-      - checkout
-      - restore_cache:
-          key: v1-dependency-cache-{{ checksum "setup.py" }}
+            sudo apt-get install -y libsqlite3-mod-spatialite
       - run:
           name: install python dependencies
           command: |

@@ -46,7 +46,7 @@ def test_single_feature_spatialite(tmpdir):
     )
     assert 0 == result.exit_code, result.stdout
     db = sqlite_utils.Database(db_path)
-    utils.init_spatialite(db)
+    utils.init_spatialite(db, utils.find_spatialite())
     assert {"features", "spatial_ref_sys"}.issubset(db.table_names())
     rows = db.execute_returning_dicts(
         "select slug, AsGeoJSON(geometry) as geometry from features"
