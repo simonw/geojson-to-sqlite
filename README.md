@@ -8,8 +8,6 @@ CLI tool for converting GeoJSON to SQLite (optionally with SpatiaLite)
 
 [RFC 7946: The GeoJSON Format](https://tools.ietf.org/html/rfc7946)
 
-**Status:** Under heavy development.
-
 ## How to install
 
     $ pip install geojson-to-sqlite
