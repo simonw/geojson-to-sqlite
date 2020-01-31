@@ -31,7 +31,7 @@ jobs:
       - restore_cache:
           key: v1-dependency-cache-{{ checksum "setup.py" }}
       - run:
-          name: Installe mod_spatialite
+          name: Install mod_spatialite
           command: |
             sudo apt-get update
             sudo apt-get install libsqlite3-mod-spatialite
