@@ -1,8 +1,8 @@
 # geojson-to-sqlite
 
 [![PyPI](https://img.shields.io/pypi/v/geojson-to-sqlite.svg)](https://pypi.org/project/geojson-to-sqlite/)
-[![CircleCI](https://circleci.com/gh/dogsheep/geojson-to-sqlite.svg?style=svg)](https://circleci.com/gh/dogsheep/geojson-to-sqlite)
-[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://github.com/dogsheep/geojson-to-sqlite/blob/master/LICENSE)
+[![CircleCI](https://circleci.com/gh/simonw/geojson-to-sqlite.svg?style=svg)](https://circleci.com/gh/simonw/geojson-to-sqlite)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://github.com/simonw/geojson-to-sqlite/blob/master/LICENSE)
 
 CLI tool for converting GeoJSON to SQLite (optionally with SpatiaLite)
 

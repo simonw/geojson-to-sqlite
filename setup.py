@@ -18,7 +18,7 @@ setup(
     long_description=get_long_description(),
     long_description_content_type="text/markdown",
     author="Simon Willison",
-    url="https://github.com/dogsheep/geojson-to-sqlite",
+    url="https://github.com/simonw/geojson-to-sqlite",
     license="Apache License, Version 2.0",
     version=VERSION,
     packages=["geojson_to_sqlite"],
