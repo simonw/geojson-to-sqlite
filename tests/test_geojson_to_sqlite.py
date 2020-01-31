@@ -38,6 +38,27 @@ def test_single_feature(tmpdir):
     ] == rows
 
 
+@pytest.mark.skipif(not utils.find_spatialite(), reason="Could not find SpatiaLite")
+def test_single_feature_spatialite(tmpdir):
+    db_path = str(tmpdir / "output.db")
+    result = CliRunner().invoke(
+        cli.cli, [db_path, "features", str(testdir / "feature.geojson"), "--spatialite"]
+    )
+    assert 0 == result.exit_code, result.stdout
+    db = sqlite_utils.Database(db_path)
+    utils.init_spatialite(db)
+    assert {"features", "spatial_ref_sys"}.issubset(db.table_names())
+    rows = db.execute_returning_dicts(
+        "select slug, AsGeoJSON(geometry) as geometry from features"
+    )
+    assert [
+        {
+            "slug": "uk",
+            "geometry": '{"type":"Polygon","coordinates":[[[-8.0859375,60.93043220292332],[-16.875,50.28933925329177],[-5.9765625,48.92249926375824],[4.21875,52.26815737376816],[1.0546875,60.06484046010452],[-8.0859375,60.93043220292332]]]}',
+        }
+    ] == rows
+
+
 def test_feature_collection(tmpdir):
     db_path = str(tmpdir / "output.db")
     result = CliRunner().invoke(

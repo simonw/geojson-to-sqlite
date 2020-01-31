@@ -12,7 +12,9 @@ from . import utils
 )
 @click.argument("table", required=True)
 @click.argument("geojson", type=click.File(), required=True)
-def cli(db_path, table, geojson):
+@click.option("--spatialite", is_flag=True, help="Use SpatiaLite")
+@click.option("--spatialite_mod", help="Path to SpatiaLite module, for if --spatialite cannot find it automatically")
+def cli(db_path, table, geojson, spatialite, spatialite_mod):
     "Import GeoJSON into a SQLite database" ""
     data = json.load(geojson)
     if not isinstance(data, dict):
@@ -24,4 +26,6 @@ def cli(db_path, table, geojson):
         features = [data]
     else:
         features = data["features"]
-    utils.import_features(db_path, table, features)
+    utils.import_features(
+        db_path, table, features, spatialite=spatialite, spatialite_mod=spatialite_mod
+    )
