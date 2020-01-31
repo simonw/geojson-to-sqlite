@@ -26,7 +26,7 @@ The table will be created the first time you run the command.
 
 On subsequent runs you can use the `--alter` option to add any new columns that are missing from the table.
 
-If your features have an `"id"` property it will be used as the primary key for the table. You can also use `--pk=PROPERTY` with the name of a property to use that as the primary key.
+You can use `--pk=PROPERTY` with the name of a property to use that as the primary key.
 
 If no primary key is specified, a SQLite `rowid` column will be used.
 
