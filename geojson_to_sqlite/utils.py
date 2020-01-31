@@ -29,7 +29,7 @@ def import_features(
         lib = spatialite_mod or find_spatialite()
         if not lib:
             raise SpatiaLiteError("Could not find SpatiaLite module")
-        init_spatialite(db)
+        init_spatialite(db, lib)
         ensure_table_has_geometry(db, table)
         conversions = {"geometry": "GeomFromText(?, 4326)"}
 
@@ -58,9 +58,9 @@ def find_spatialite():
     return None
 
 
-def init_spatialite(db):
+def init_spatialite(db, lib):
     db.conn.enable_load_extension(True)
-    db.conn.load_extension("/usr/local/lib/mod_spatialite.dylib")
+    db.conn.load_extension(lib)
     # Initialize SpatiaLite if not yet initialized
     if "spatial_ref_sys_all" in db.table_names():
         return
