@@ -35,6 +35,8 @@ jobs:
           command: |
             sudo apt-get update
             sudo apt-get install libsqlite3-mod-spatialite
+            # Workaround for https://github.com/simonw/geojson-to-sqlite/issues/4
+            sudo ln -s /usr/lib/x86_64-linux-gnu/mod_spatialite.so /usr/lib/x86_64-linux-gnu/mod_spatialite
       - run:
           name: install python dependencies
           command: |
