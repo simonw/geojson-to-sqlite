@@ -82,3 +82,35 @@ def test_feature_collection(tmpdir):
             "continent": "North America",
         },
     ] == rows
+    assert ["rowid"] == db["features"].pks
+
+
+def test_feature_collection_pk_and_alter(tmpdir):
+    db_path = str(tmpdir / "output.db")
+    result = CliRunner().invoke(
+        cli.cli, [db_path, "features", str(testdir / "feature.geojson"), "--pk=slug"]
+    )
+    assert 0 == result.exit_code, result.stdout
+    db = sqlite_utils.Database(db_path)
+    assert ["features"] == db.table_names()
+    rows = db.execute_returning_dicts("select slug, description from features")
+    assert [{"slug": "uk", "description": "Rough area around the UK"}] == rows
+    assert ["slug"] == db["features"].pks
+
+    # Running it again should insert usa
+    result = CliRunner().invoke(
+        cli.cli,
+        [
+            db_path,
+            "features",
+            str(testdir / "feature-collection.geojson"),
+            "--pk=slug",
+            "--alter",
+        ],
+    )
+    assert 0 == result.exit_code, result.stdout
+    rows = db.execute_returning_dicts("select slug, description from features")
+    assert [
+        {"slug": "uk", "description": "Rough area around the UK"},
+        {"slug": "usa", "description": "Very rough area around the USA"},
+    ] == rows

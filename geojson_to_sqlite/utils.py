@@ -12,7 +12,15 @@ class SpatiaLiteError(Exception):
     pass
 
 
-def import_features(db_path, table, features, spatialite=False, spatialite_mod=None):
+def import_features(
+    db_path,
+    table,
+    features,
+    pk=None,
+    alter=False,
+    spatialite=False,
+    spatialite_mod=None,
+):
     db = sqlite_utils.Database(db_path)
     conversions = {}
     if spatialite_mod:
@@ -34,7 +42,12 @@ def import_features(db_path, table, features, spatialite=False, spatialite_mod=N
                 record["geometry"] = feature["geometry"]
             yield record
 
-    db[table].insert_all(yield_records(), conversions=conversions)
+    if pk:
+        db[table].upsert_all(
+            yield_records(), conversions=conversions, pk=pk, alter=alter
+        )
+    else:
+        db[table].insert_all(yield_records(), conversions=conversions)
     return db[table]
 
 
