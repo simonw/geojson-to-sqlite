@@ -62,7 +62,7 @@ def init_spatialite(db, lib):
     db.conn.enable_load_extension(True)
     db.conn.load_extension(lib)
     # Initialize SpatiaLite if not yet initialized
-    if "spatial_ref_sys_all" in db.table_names():
+    if "spatial_ref_sys" in db.table_names():
         return
     db.conn.execute("select InitSpatialMetadata(1)")
 
