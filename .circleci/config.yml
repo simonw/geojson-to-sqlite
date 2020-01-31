@@ -2,7 +2,7 @@ version: 2.1
 workflows:
   build_and_deploy:
     jobs:
-      - build_and_test:
+      - build:
           filters:
             tags:
               only: /.*/
@@ -15,7 +15,7 @@ workflows:
             branches:
               ignore: /.*/
 jobs:
-  build_and_test:
+  build:
     docker:
       - image: circleci/python:3.8
     steps:
