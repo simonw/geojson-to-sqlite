@@ -1,5 +1,6 @@
 from shapely.geometry import shape
 import sqlite_utils
+import itertools
 import os
 
 SPATIALITE_PATHS = (
@@ -22,16 +23,6 @@ def import_features(
     spatialite_mod=None,
 ):
     db = sqlite_utils.Database(db_path)
-    conversions = {}
-    if spatialite_mod:
-        spatialite = True
-    if spatialite:
-        lib = spatialite_mod or find_spatialite()
-        if not lib:
-            raise SpatiaLiteError("Could not find SpatiaLite module")
-        init_spatialite(db, lib)
-        ensure_table_has_geometry(db, table)
-        conversions = {"geometry": "GeomFromText(?, 4326)"}
 
     def yield_records():
         for feature in features:
@@ -41,6 +32,25 @@ def import_features(
             else:
                 record["geometry"] = feature["geometry"]
             yield record
+
+    conversions = {}
+    if spatialite_mod:
+        spatialite = True
+    if spatialite:
+        lib = spatialite_mod or find_spatialite()
+        if not lib:
+            raise SpatiaLiteError("Could not find SpatiaLite module")
+        init_spatialite(db, lib)
+        if table not in db.table_names():
+            # Create the table, using detected column types
+            column_types = db[table].detect_column_types(
+                itertools.islice(yield_records(), 0, 100)
+            )
+            column_types.pop("geometry")
+            db[table].create(column_types, pk=pk)
+            ensure_table_has_geometry(db, table)
+            # conversions = {"geometry": "CastToMultiPolygon(GeomFromText(?, 4326))"}
+        conversions = {"geometry": "GeomFromText(?, 4326)"}
 
     if pk:
         db[table].upsert_all(
@@ -70,5 +80,5 @@ def init_spatialite(db, lib):
 def ensure_table_has_geometry(db, table):
     if "geometry" not in db[table].columns_dict:
         db.conn.execute(
-            "SELECT AddGeometryColumn(?, 'geometry', 4326, 'MULTIPOLYGON', 2);", [table]
+            "SELECT AddGeometryColumn(?, 'geometry', 4326, 'GEOMETRY', 2);", [table]
         )
