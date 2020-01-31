@@ -2,14 +2,10 @@ version: 2.1
 workflows:
   build_and_deploy:
     jobs:
-      - build:
+      - build_and_test:
           filters:
             tags:
               only: /.*/
-      - build_and_test:
-          version: "3.8"
-          requires:
-            - build
       - deploy:
           requires:
             - build
