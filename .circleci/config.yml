@@ -26,7 +26,7 @@ jobs:
           name: Install mod_spatialite
           command: |
             sudo apt-get update
-            sudo apt-get install libsqlite3-mod-spatialite
+            sudo apt-get install -y spatialite-bin libspatialite5
       - run:
           name: install python dependencies
           command: |
