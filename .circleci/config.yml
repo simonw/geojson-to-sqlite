@@ -6,12 +6,8 @@ workflows:
           filters:
             tags:
               only: /.*/
-      - test-python-install:
-          version: "3.6"
-          requires:
-            - build
-      - test-python-install:
-          version: "3.7"
+      - build_and_test:
+          version: "3.8"
           requires:
             - build
       - deploy:
@@ -23,9 +19,9 @@ workflows:
             branches:
               ignore: /.*/
 jobs:
-  build:
+  build_and_test:
     docker:
-      - image: circleci/python:3.6
+      - image: circleci/python:3.8
     steps:
       - checkout
       - restore_cache:
@@ -35,36 +31,6 @@ jobs:
           command: |
             sudo apt-get update
             sudo apt-get install libsqlite3-mod-spatialite
-            # Workaround for https://github.com/simonw/geojson-to-sqlite/issues/4
-            sudo ln -s /usr/lib/x86_64-linux-gnu/mod_spatialite.so /usr/lib/x86_64-linux-gnu/mod_spatialite
-      - run:
-          name: install python dependencies
-          command: |
-            python3 -m venv venv
-            . venv/bin/activate
-            pip install -e .
-      - save_cache:
-          key: v1-dependency-cache-{{ checksum "setup.py" }}
-          paths:
-            - "venv"
-      - run:
-          name: run tests
-          command: |
-            . venv/bin/activate
-            pip install -e .
-            pip install pytest
-            pytest
-  test-python-install:
-    parameters:
-      version:
-        type: string
-        default: latest
-    docker:
-      - image: circleci/python:3.6
-    steps:
-      - checkout
-      - restore_cache:
-          key: v1-dependency-cache-{{ checksum "setup.py" }}
       - run:
           name: install python dependencies
           command: |
