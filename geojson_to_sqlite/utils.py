@@ -43,7 +43,7 @@ def import_features(
         init_spatialite(db, lib)
         if table not in db.table_names():
             # Create the table, using detected column types
-            column_types = db[table].detect_column_types(
+            column_types = sqlite_utils.suggest_column_types(
                 itertools.islice(yield_records(), 0, 100)
             )
             column_types.pop("geometry")
