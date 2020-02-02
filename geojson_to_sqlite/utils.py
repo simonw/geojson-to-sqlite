@@ -24,6 +24,9 @@ def import_features(
 ):
     db = sqlite_utils.Database(db_path)
 
+    if pk is None and has_ids(features[:100]):
+        pk = "id"
+
     def yield_records():
         for feature in features:
             record = feature.get("properties") or {}
@@ -31,6 +34,8 @@ def import_features(
                 record["geometry"] = shape(feature["geometry"]).wkt
             else:
                 record["geometry"] = feature["geometry"]
+            if "id" in feature and pk == "id":
+                record["id"] = feature["id"]
             yield record
 
     conversions = {}
@@ -82,3 +87,8 @@ def ensure_table_has_geometry(db, table):
         db.conn.execute(
             "SELECT AddGeometryColumn(?, 'geometry', 4326, 'GEOMETRY', 2);", [table]
         )
+
+
+def has_ids(features):
+    return all(f.get("id") is not None for f in features)
+
