@@ -26,7 +26,7 @@ The table will be created the first time you run the command.
 
 On subsequent runs you can use the `--alter` option to add any new columns that are missing from the table.
 
-If your features have an `"id"` property it will be used as the primary key for the table. You can also use `--pk=PROPERTY` with the name of a property to use that as the primary key. (Setting `--pk` will override `feature.id`.)
+If your features have an `"id"` property it will be used as the primary key for the table. You can also use `--pk=PROPERTY` with the name of a different property to use that as the primary key instead. If you don't want to use the `"id"` as the primary key (maybe it contains duplicate values) you can use `--pk ''` to specify no primary key.
 
 If no primary key is specified, a SQLite `rowid` column will be used.
 
@@ -54,3 +54,17 @@ If you have installed the module in another location, you can use the `--spatial
 
     $ geojson-to-sqlite my.db features features.geojson \
         --spatialite_mod=/usr/lib/mod_spatialite.dylib
+
+## Using this with Datasette
+
+Databases created using this tool can be explored and published using [Datasette](https://datasette.readthedocs.io/).
+
+The Datasette documentation includes a section on [how to use it to browse SpatiaLite databases](https://datasette.readthedocs.io/en/stable/spatialite.html).
+
+The [datasette-leaflet-geojson](https://github.com/simonw/datasette-leaflet-geojson) plugin can be used to visualize columns containing GeoJSON geometries on a [Leaflet](https://leafletjs.com/) map.
+
+If you are using SpatiaLite you will need to output the geometry as GeoJSON in order for that plugin to work. You can do that using the SpaitaLite `AsGeoJSON()` function - something like this:
+
+```sql
+select rowid, AsGeoJSON(geometry) from mytable limit 10
+```
