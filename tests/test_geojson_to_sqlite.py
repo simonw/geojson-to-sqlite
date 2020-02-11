@@ -146,3 +146,46 @@ def test_feature_collection_pk_and_alter(tmpdir):
         {"slug": "uk", "description": "Rough area around the UK"},
         {"slug": "usa", "description": "Very rough area around the USA"},
     ] == rows
+
+
+def test_feature_collection_id_as_pk(tmpdir):
+    db_path = str(tmpdir / "output.db")
+    result = CliRunner().invoke(
+        cli.cli, [db_path, "features", str(testdir / "feature-collection-ids.geojson")]
+    )
+    assert 0 == result.exit_code, result.stdout
+    db = sqlite_utils.Database(db_path)
+    features = db["features"]
+
+    # check that we're setting the right pk
+    assert "id" in features.columns_dict and ["id"] == features.pks
+
+    uk = features.get(3)
+    usa = features.get(8)
+
+    assert "uk" == uk["slug"]
+    assert "usa" == usa["slug"]
+
+
+def test_feature_collection_override_id(tmpdir):
+    db_path = str(tmpdir / "output.db")
+    result = CliRunner().invoke(
+        cli.cli,
+        [
+            db_path,
+            "features",
+            str(testdir / "feature-collection-ids.geojson"),
+            "--pk=slug",
+        ],
+    )
+    assert 0 == result.exit_code, result.stdout
+    db = sqlite_utils.Database(db_path)
+    features = db["features"]
+
+    assert ["slug"] == features.pks
+
+    uk = features.get("uk")
+    usa = features.get("usa")
+
+    assert "Rough area around the UK" == uk["description"]
+    assert "North America" == usa["continent"]

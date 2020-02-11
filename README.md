@@ -26,7 +26,7 @@ The table will be created the first time you run the command.
 
 On subsequent runs you can use the `--alter` option to add any new columns that are missing from the table.
 
-You can use `--pk=PROPERTY` with the name of a property to use that as the primary key.
+If your features have an `"id"` property it will be used as the primary key for the table. You can also use `--pk=PROPERTY` with the name of a property to use that as the primary key. (Setting `--pk` will override `feature.id`.)
 
 If no primary key is specified, a SQLite `rowid` column will be used.
 
@@ -47,8 +47,8 @@ You can do this using the `--spatialite` option, like so:
 
 The tool will search for the SpatiaLite module in the following locations:
 
-* `/usr/lib/x86_64-linux-gnu/mod_spatialite.so`
-* `/usr/local/lib/mod_spatialite.dylib`
+- `/usr/lib/x86_64-linux-gnu/mod_spatialite.so`
+- `/usr/local/lib/mod_spatialite.dylib`
 
 If you have installed the module in another location, you can use the `--spatialite_mod=xxx` option to specify where:
 
