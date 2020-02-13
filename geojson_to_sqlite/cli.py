@@ -12,6 +12,7 @@ from . import utils
 )
 @click.argument("table", required=True)
 @click.argument("geojson", type=click.File(), required=True)
+@click.option("--nl", is_flag=True, help="Use newline-delimited GeoJSON features")
 @click.option("--pk", help="Column to use as a primary key")
 @click.option("--alter", is_flag=True, help="Add any missing columns")
 @click.option("--spatialite", is_flag=True, help="Use SpatiaLite")
@@ -19,18 +20,24 @@ from . import utils
     "--spatialite_mod",
     help="Path to SpatiaLite module, for if --spatialite cannot find it automatically",
 )
-def cli(db_path, table, geojson, pk, alter, spatialite, spatialite_mod):
-    "Import GeoJSON into a SQLite database" ""
-    data = json.load(geojson)
-    if not isinstance(data, dict):
-        raise click.ClickException("GeoJSON root must be an object")
-    geojson_type = data.get("type")
-    if geojson_type not in ("Feature", "FeatureCollection"):
-        raise click.ClickException("GeoJSON must be a Feature or a FeatureCollection")
-    if geojson_type == "Feature":
-        features = [data]
-    else:
-        features = data["features"]
+def cli(db_path, table, geojson, nl, pk, alter, spatialite, spatialite_mod):
+    "Import GeoJSON into a SQLite database"
+    # data = json.load(geojson)
+    # if not isinstance(data, dict):
+    #     raise click.ClickException("GeoJSON root must be an object")
+    # geojson_type = data.get("type")
+    # if geojson_type not in ("Feature", "FeatureCollection"):
+    #     raise click.ClickException("GeoJSON must be a Feature or a FeatureCollection")
+    # if geojson_type == "Feature":
+    #     features = [data]
+    # else:
+    #     features = data["features"]
+
+    try:
+        features = utils.get_features(geojson, nl)
+    except (TypeError, ValueError) as e:
+        raise click.ClickException(str(e))
+
     utils.import_features(
         db_path,
         table,

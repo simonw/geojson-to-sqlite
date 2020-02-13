@@ -55,6 +55,22 @@ If you have installed the module in another location, you can use the `--spatial
     $ geojson-to-sqlite my.db features features.geojson \
         --spatialite_mod=/usr/lib/mod_spatialite.dylib
 
+## Streaming large datasets
+
+For large datasets, consider using newline-delimited JSON to stream features into the database without loading the entire feature collection into memory.
+
+For example, to load a day of earthquake reports from USGS:
+
+    $ geojson-to-sqlite quakes.db quakes tests/quakes.ndjson --nl --pk=id --spatialite
+
+Using newline-delimited JSON does come with a couple drawbacks: The data is streamed, so we can't automatically detect feature IDs. Tables will also be created from the first feature, instead of guessing types based on the first 100 features.
+
+If you want to use a larger subset of your data (for example, if some fields are inconsistent) you can use [fiona](https://fiona.readthedocs.io/en/latest/cli.html) to collect features into a single collection.
+
+    $ head tests/quakes.ndjson | fio collect | geojson-to-sqlite quakes.db quakes - --spatialite
+
+This will take the first 10 lines from `tests/quakes.ndjson`, pass them to `fio collect`, which turns them into a single feature collection, and pass that, in turn, to `geojson-to-sqlite`. Since we're loading a single feature collection, not a stream, we can auto-detect feature IDs.
+
 ## Using this with Datasette
 
 Databases created using this tool can be explored and published using [Datasette](https://datasette.readthedocs.io/).

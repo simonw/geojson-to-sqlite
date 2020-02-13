@@ -3,6 +3,7 @@ from geojson_to_sqlite import cli, utils
 import pytest
 import sqlite_utils
 import pathlib
+import json
 
 
 testdir = pathlib.Path(__file__).parent
@@ -189,3 +190,19 @@ def test_feature_collection_override_id(tmpdir):
 
     assert "Rough area around the UK" == uk["description"]
     assert "North America" == usa["continent"]
+
+
+def test_ndjson(tmpdir):
+    ndjson = testdir / "quakes.ndjson"
+    db_path = str(tmpdir / "output.db")
+
+    with open(ndjson) as f:
+        data = [json.loads(line) for line in f]
+
+    result = CliRunner().invoke(cli.cli, [db_path, "features", str(ndjson), "--nl"])
+    assert 0 == result.exit_code, result.stdout
+
+    db = sqlite_utils.Database(db_path)
+    features = db["features"]
+
+    assert len(data) == features.count
