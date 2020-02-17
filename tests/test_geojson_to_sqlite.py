@@ -206,3 +206,7 @@ def test_ndjson(tmpdir):
     features = db["features"]
 
     assert len(data) == features.count
+
+    # the quakes dataset has an id attribute set,
+    # so check that we're setting the right pk
+    assert "id" in features.columns_dict and ["id"] == features.pks

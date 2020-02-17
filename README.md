@@ -63,13 +63,13 @@ For example, to load a day of earthquake reports from USGS:
 
     $ geojson-to-sqlite quakes.db quakes tests/quakes.ndjson --nl --pk=id --spatialite
 
-Using newline-delimited JSON does come with a couple drawbacks: The data is streamed, so we can't automatically detect feature IDs. Tables will also be created from the first feature, instead of guessing types based on the first 100 features.
+When using newline-delimited JSON, tables will also be created from the first feature, instead of guessing types based on the first 100 features.
 
-If you want to use a larger subset of your data (for example, if some fields are inconsistent) you can use [fiona](https://fiona.readthedocs.io/en/latest/cli.html) to collect features into a single collection.
+If you want to use a larger subset of your data to guess column types (for example, if some fields are inconsistent) you can use [fiona](https://fiona.readthedocs.io/en/latest/cli.html) to collect features into a single collection.
 
     $ head tests/quakes.ndjson | fio collect | geojson-to-sqlite quakes.db quakes - --spatialite
 
-This will take the first 10 lines from `tests/quakes.ndjson`, pass them to `fio collect`, which turns them into a single feature collection, and pass that, in turn, to `geojson-to-sqlite`. Since we're loading a single feature collection, not a stream, we can auto-detect feature IDs.
+This will take the first 10 lines from `tests/quakes.ndjson`, pass them to `fio collect`, which turns them into a single feature collection, and pass that, in turn, to `geojson-to-sqlite`.
 
 ## Using this with Datasette
 

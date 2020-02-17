@@ -28,7 +28,13 @@ def import_features(
     db = sqlite_utils.Database(db_path)
     stream = inspect.isgenerator(features)
 
-    if not stream and pk is None and has_ids(features[:100]):
+    # grab a sample, for checking ids
+    sample = list(itertools.islice(features, 100))
+    if stream:
+        # otherwise, we still have our list
+        features = itertools.chain(sample, features)
+
+    if pk is None and has_ids(sample):
         pk = "id"
 
     def yield_records():
