@@ -1,6 +1,9 @@
 from shapely.geometry import shape
 import sqlite_utils
+
+import inspect
 import itertools
+import json
 import os
 
 SPATIALITE_PATHS = (
@@ -24,8 +27,15 @@ def import_features(
     spatial_index=False,
 ):
     db = sqlite_utils.Database(db_path)
+    stream = inspect.isgenerator(features)
 
-    if pk is None and has_ids(features[:100]):
+    # grab a sample, for checking ids
+    sample = list(itertools.islice(features, 100))
+    if stream:
+        # otherwise, we still have our list
+        features = itertools.chain(sample, features)
+
+    if pk is None and has_ids(sample):
         pk = "id"
 
     def yield_records():
@@ -42,13 +52,18 @@ def import_features(
     conversions = {}
     if spatialite_mod or spatial_index:
         spatialite = True
+
     if spatialite:
         lib = spatialite_mod or find_spatialite()
+
         if not lib:
             raise SpatiaLiteError("Could not find SpatiaLite module")
+
         init_spatialite(db, lib)
-        if table not in db.table_names():
+
+        if not stream and table not in db.table_names():
             # Create the table, using detected column types
+            # unless we're streaming, in which case we can't do this
             column_types = sqlite_utils.suggest_column_types(
                 itertools.islice(yield_records(), 0, 100)
             )
@@ -56,12 +71,14 @@ def import_features(
             db[table].create(column_types, pk=pk)
             ensure_table_has_geometry(db, table)
             # conversions = {"geometry": "CastToMultiPolygon(GeomFromText(?, 4326))"}
+
         conversions = {"geometry": "GeomFromText(?, 4326)"}
 
     if pk:
         db[table].upsert_all(
             yield_records(), conversions=conversions, pk=pk, alter=alter
         )
+
     else:
         db[table].insert_all(yield_records(), conversions=conversions)
 
@@ -69,6 +86,30 @@ def import_features(
         db.conn.execute("select CreateSpatialIndex(?, ?)", [table, "geometry"])
 
     return db[table]
+
+
+def get_features(geojson_file, nl=False):
+    """
+    Get a list of features from something resembling geojson.
+
+    Note that if the `nl` option is True, this will return a generator
+    that yields a single feature from each line in the source file.
+    """
+    if nl:
+        return (json.loads(line) for line in geojson_file if line.strip())
+
+    # if not nl, load the whole file
+    geojson = json.load(geojson_file)
+    if not isinstance(geojson, dict):
+        raise TypeError("GeoJSON root must be an object")
+
+    if geojson.get("type") not in ("Feature", "FeatureCollection"):
+        raise ValueError("GeoJSON must be a Feature or a FeatureCollection")
+
+    if geojson["type"] == "Feature":
+        return [geojson]
+
+    return geojson.get("features", [])
 
 
 def find_spatialite():

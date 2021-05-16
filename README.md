@@ -62,6 +62,22 @@ You can create a SpatiaLite spatial index on the `geometry` column using the `--
 
 Using this option implies `--spatialite` so you do not need to add that.
 
+## Streaming large datasets
+
+For large datasets, consider using newline-delimited JSON to stream features into the database without loading the entire feature collection into memory.
+
+For example, to load a day of earthquake reports from USGS:
+
+    $ geojson-to-sqlite quakes.db quakes tests/quakes.ndjson --nl --pk=id --spatialite
+
+When using newline-delimited JSON, tables will also be created from the first feature, instead of guessing types based on the first 100 features.
+
+If you want to use a larger subset of your data to guess column types (for example, if some fields are inconsistent) you can use [fiona](https://fiona.readthedocs.io/en/latest/cli.html) to collect features into a single collection.
+
+    $ head tests/quakes.ndjson | fio collect | geojson-to-sqlite quakes.db quakes - --spatialite
+
+This will take the first 10 lines from `tests/quakes.ndjson`, pass them to `fio collect`, which turns them into a single feature collection, and pass that, in turn, to `geojson-to-sqlite`.
+
 ## Using this with Datasette
 
 Databases created using this tool can be explored and published using [Datasette](https://datasette.readthedocs.io/).
