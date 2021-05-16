@@ -15,11 +15,12 @@ from . import utils
 @click.option("--pk", help="Column to use as a primary key")
 @click.option("--alter", is_flag=True, help="Add any missing columns")
 @click.option("--spatialite", is_flag=True, help="Use SpatiaLite")
+@click.option("--spatial-index", is_flag=True, help="Create spatial indexes")
 @click.option(
     "--spatialite_mod",
     help="Path to SpatiaLite module, for if --spatialite cannot find it automatically",
 )
-def cli(db_path, table, geojson, pk, alter, spatialite, spatialite_mod):
+def cli(db_path, table, geojson, pk, alter, spatialite, spatial_index, spatialite_mod):
     "Import GeoJSON into a SQLite database" ""
     data = json.load(geojson)
     if not isinstance(data, dict):
@@ -39,4 +40,5 @@ def cli(db_path, table, geojson, pk, alter, spatialite, spatialite_mod):
         alter=alter,
         spatialite=spatialite,
         spatialite_mod=spatialite_mod,
+        spatial_index=spatial_index,
     )

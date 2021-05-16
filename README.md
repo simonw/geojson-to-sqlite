@@ -55,6 +55,12 @@ If you have installed the module in another location, you can use the `--spatial
     $ geojson-to-sqlite my.db features features.geojson \
         --spatialite_mod=/usr/lib/mod_spatialite.dylib
 
+You can create a SpatiaLite spatial index on the `geometry` column using the `--spatial-index` option:
+
+    $ geojson-to-sqlite my.db features features.geojson --spatial-index
+
+Using this option implies `--spatialite` so you do not need to add that.
+
 ## Using this with Datasette
 
 Databases created using this tool can be explored and published using [Datasette](https://datasette.readthedocs.io/).

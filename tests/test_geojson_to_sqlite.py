@@ -91,6 +91,27 @@ def test_feature_collection_spatialite(tmpdir):
     )
 
 
+@pytest.mark.skipif(not utils.find_spatialite(), reason="Could not find SpatiaLite")
+@pytest.mark.parametrize("use_spatial_index", (True, False))
+def test_spatial_index(tmpdir, use_spatial_index):
+    db_path = str(tmpdir / "output.db")
+    result = CliRunner().invoke(
+        cli.cli,
+        [
+            db_path,
+            "features",
+            str(testdir / "feature-collection.geojson"),
+        ]
+        + (["--spatial-index"] if use_spatial_index else []),
+        catch_exceptions=False,
+    )
+    assert 0 == result.exit_code, result.stdout
+    db = sqlite_utils.Database(db_path)
+    utils.init_spatialite(db, utils.find_spatialite())
+    has_idx = "idx_features_geometry" in db.table_names()
+    assert has_idx == use_spatial_index
+
+
 def test_feature_collection(tmpdir):
     db_path = str(tmpdir / "output.db")
     result = CliRunner().invoke(
