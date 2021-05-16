@@ -231,3 +231,13 @@ def test_ndjson(tmpdir):
     # the quakes dataset has an id attribute set,
     # so check that we're setting the right pk
     assert "id" in features.columns_dict and ["id"] == features.pks
+
+
+@pytest.mark.skipif(not utils.find_spatialite(), reason="Could not find SpatiaLite")
+def test_ndjson_with_spatial_index(tmpdir):
+    ndjson = testdir / "quakes.ndjson"
+    db_path = str(tmpdir / "output.db")
+    result = CliRunner().invoke(
+        cli.cli, [db_path, "features", str(ndjson), "--nl", "--spatial-index"]
+    )
+    assert 0 == result.exit_code, result.stdout
