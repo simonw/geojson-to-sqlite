@@ -24,6 +24,7 @@ def import_features(
     alter=False,
     spatialite=False,
     spatialite_mod=None,
+    spatial_index=False,
 ):
     db = sqlite_utils.Database(db_path)
     stream = inspect.isgenerator(features)
@@ -49,8 +50,7 @@ def import_features(
             yield record
 
     conversions = {}
-
-    if spatialite_mod:
+    if spatialite_mod or spatial_index:
         spatialite = True
 
     if spatialite:
@@ -81,6 +81,9 @@ def import_features(
 
     else:
         db[table].insert_all(yield_records(), conversions=conversions)
+
+    if spatial_index:
+        db.conn.execute("select CreateSpatialIndex(?, ?)", [table, "geometry"])
 
     return db[table]
 
@@ -134,4 +137,3 @@ def ensure_table_has_geometry(db, table):
 
 def has_ids(features):
     return all(f.get("id") is not None for f in features)
-

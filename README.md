@@ -1,7 +1,8 @@
 # geojson-to-sqlite
 
 [![PyPI](https://img.shields.io/pypi/v/geojson-to-sqlite.svg)](https://pypi.org/project/geojson-to-sqlite/)
-[![CircleCI](https://circleci.com/gh/simonw/geojson-to-sqlite.svg?style=svg)](https://circleci.com/gh/simonw/geojson-to-sqlite)
+[![Changelog](https://img.shields.io/github/v/release/simonw/geojson-to-sqlite?include_prereleases&label=changelog)](https://github.com/simonw/geojson-to-sqlite/releases)
+[![Tests](https://github.com/simonw/geojson-to-sqlite/workflows/Test/badge.svg)](https://github.com/simonw/geojson-to-sqlite/actions?query=workflow%3ATest)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://github.com/simonw/geojson-to-sqlite/blob/master/LICENSE)
 
 CLI tool for converting GeoJSON to SQLite (optionally with SpatiaLite)
@@ -54,6 +55,12 @@ If you have installed the module in another location, you can use the `--spatial
 
     $ geojson-to-sqlite my.db features features.geojson \
         --spatialite_mod=/usr/lib/mod_spatialite.dylib
+
+You can create a SpatiaLite spatial index on the `geometry` column using the `--spatial-index` option:
+
+    $ geojson-to-sqlite my.db features features.geojson --spatial-index
+
+Using this option implies `--spatialite` so you do not need to add that.
 
 ## Streaming large datasets
 
