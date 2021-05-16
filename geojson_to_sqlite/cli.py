@@ -21,7 +21,9 @@ from . import utils
     "--spatialite_mod",
     help="Path to SpatiaLite module, for if --spatialite cannot find it automatically",
 )
-def cli(db_path, table, geojson, nl, pk, alter, spatialite, spatial_index, spatialite_mod):
+def cli(
+    db_path, table, geojson, nl, pk, alter, spatialite, spatial_index, spatialite_mod
+):
     "Import GeoJSON into a SQLite database" ""
     try:
         features = utils.get_features(geojson, nl)

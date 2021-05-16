@@ -231,3 +231,38 @@ def test_ndjson(tmpdir):
     # the quakes dataset has an id attribute set,
     # so check that we're setting the right pk
     assert "id" in features.columns_dict and ["id"] == features.pks
+
+    assert list(features.rows) == [
+        {
+            "code": "70006tcn",
+            "detail": "https://earthquake.usgs.gov/fdsnws/event/1/query?eventid=us70006tcn&format=geojson",
+            "dmin": 2.071,
+            "gap": 74,
+            "id": "0",
+            "mag": 5.0,
+            "place": "199km E of Neiafu, Tonga",
+            "rms": 1.1,
+            "sig": 385,
+            "time": 1577920374126,
+            "title": "M 5.0 - 199km E of Neiafu, Tonga",
+            "updated": 1579312938040,
+            "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us70006tcn",
+            "geometry": '{"coordinates": [-172.0991, -18.8187, 10.0], "type": "Point"}',
+        },
+        {
+            "code": "700070tk",
+            "detail": "https://earthquake.usgs.gov/fdsnws/event/1/query?eventid=us700070tk&format=geojson",
+            "dmin": 2.108,
+            "gap": 103,
+            "id": "1",
+            "mag": 4.4,
+            "place": "202km E of Neiafu, Tonga",
+            "rms": 0.66,
+            "sig": 298,
+            "time": 1577918987058,
+            "title": "M 4.4 - 202km E of Neiafu, Tonga",
+            "updated": 1579310941040,
+            "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us700070tk",
+            "geometry": '{"coordinates": [-172.0708, -18.5072, 10.0], "type": "Point"}',
+        },
+    ]
