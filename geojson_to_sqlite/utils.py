@@ -16,6 +16,18 @@ class SpatiaLiteError(Exception):
     pass
 
 
+def yield_records(features, pk, spatialite):
+    for feature in features:
+        record = feature.get("properties") or {}
+        if spatialite:
+            record["geometry"] = shape(feature["geometry"]).wkt
+        else:
+            record["geometry"] = feature["geometry"]
+        if "id" in feature:
+            record["id"] = feature["id"]
+        yield record
+
+
 def import_features(
     db_path,
     table,
@@ -27,27 +39,15 @@ def import_features(
     spatial_index=False,
 ):
     db = sqlite_utils.Database(db_path)
-    stream = inspect.isgenerator(features)
+    features = iter(features)
 
     # grab a sample, for checking ids
-    sample = list(itertools.islice(features, 100))
-    if stream:
-        # otherwise, we still have our list
-        features = itertools.chain(sample, features)
+    sample_geojson = list(itertools.islice(features, 100))
+    features = itertools.chain(sample_geojson, features)
+    sample_records = list(yield_records(sample_geojson, pk, spatialite))
 
-    if pk is None and has_ids(sample):
+    if pk is None and has_ids(sample_records):
         pk = "id"
-
-    def yield_records():
-        for feature in features:
-            record = feature.get("properties") or {}
-            if spatialite:
-                record["geometry"] = shape(feature["geometry"]).wkt
-            else:
-                record["geometry"] = feature["geometry"]
-            if "id" in feature and pk == "id":
-                record["id"] = feature["id"]
-            yield record
 
     conversions = {}
     if spatialite_mod or spatial_index:
@@ -61,26 +61,27 @@ def import_features(
 
         init_spatialite(db, lib)
 
-        if not stream and table not in db.table_names():
+        if table not in db.table_names():
             # Create the table, using detected column types
-            # unless we're streaming, in which case we can't do this
-            column_types = sqlite_utils.suggest_column_types(
-                itertools.islice(yield_records(), 0, 100)
-            )
+            column_types = sqlite_utils.suggest_column_types(sample_records)
             column_types.pop("geometry")
             db[table].create(column_types, pk=pk)
             ensure_table_has_geometry(db, table)
-            # conversions = {"geometry": "CastToMultiPolygon(GeomFromText(?, 4326))"}
 
         conversions = {"geometry": "GeomFromText(?, 4326)"}
 
     if pk:
         db[table].upsert_all(
-            yield_records(), conversions=conversions, pk=pk, alter=alter
+            yield_records(features, pk, spatialite),
+            conversions=conversions,
+            pk=pk,
+            alter=alter,
         )
 
     else:
-        db[table].insert_all(yield_records(), conversions=conversions)
+        db[table].insert_all(
+            yield_records(features, pk, spatialite), conversions=conversions
+        )
 
     if spatial_index:
         db.conn.execute("select CreateSpatialIndex(?, ?)", [table, "geometry"])

@@ -103,7 +103,7 @@ def test_spatial_index(tmpdir, use_spatial_index):
             "features",
             str(testdir / "feature-collection.geojson"),
         ]
-        + (["--spatial-index"] if use_spatial_index else []),
+        + (["--spatial-index"] if use_spatial_index else ["--spatialite"]),
         catch_exceptions=False,
     )
     assert 0 == result.exit_code, result.stdout
@@ -111,6 +111,10 @@ def test_spatial_index(tmpdir, use_spatial_index):
     utils.init_spatialite(db, utils.find_spatialite())
     has_idx = "idx_features_geometry" in db.table_names()
     assert has_idx == use_spatial_index
+    has_spatial_index_geometry_columns = bool(
+        list(db["geometry_columns"].rows_where("spatial_index_enabled = 1"))
+    )
+    assert has_spatial_index_geometry_columns == use_spatial_index
 
 
 def test_feature_collection(tmpdir):
@@ -226,7 +230,7 @@ def test_ndjson(tmpdir):
     db = sqlite_utils.Database(db_path)
     features = db["features"]
 
-    assert len(data) == features.count
+    assert features.count == 44
 
     # the quakes dataset has an id attribute set,
     # so check that we're setting the right pk
@@ -241,3 +245,12 @@ def test_ndjson_with_spatial_index(tmpdir):
         cli.cli, [db_path, "features", str(ndjson), "--nl", "--spatial-index"]
     )
     assert 0 == result.exit_code, result.stdout
+    # There should be a spatial index
+    db = sqlite_utils.Database(db_path)
+    utils.init_spatialite(db, utils.find_spatialite())
+    has_spatial_index_geometry_columns = bool(
+        list(db["geometry_columns"].rows_where("spatial_index_enabled = 1"))
+    )
+    assert has_spatial_index_geometry_columns
+    # And 44 rows in the quakes table
+    assert db["features"].count == 44
