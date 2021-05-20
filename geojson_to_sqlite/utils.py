@@ -18,13 +18,14 @@ class SpatiaLiteError(Exception):
 
 def yield_records(features, pk, spatialite):
     for feature in features:
-        record = feature.get("properties") or {}
+        record = {}
+        if "id" in feature:
+            record["id"] = feature["id"]
+        record.update(feature.get("properties") or {})
         if spatialite:
             record["geometry"] = shape(feature["geometry"]).wkt
         else:
             record["geometry"] = feature["geometry"]
-        if "id" in feature:
-            record["id"] = feature["id"]
         yield record
 
 

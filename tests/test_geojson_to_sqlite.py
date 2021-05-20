@@ -192,6 +192,14 @@ def test_feature_collection_id_as_pk(tmpdir):
     assert "uk" == uk["slug"]
     assert "usa" == usa["slug"]
 
+    assert [c.name for c in features.columns] == [
+        "id",
+        "slug",
+        "description",
+        "geometry",
+        "continent",
+    ]
+
 
 def test_feature_collection_override_id(tmpdir):
     db_path = str(tmpdir / "output.db")
