@@ -22,10 +22,11 @@ def yield_records(features, pk, spatialite):
         if "id" in feature:
             record["id"] = feature["id"]
         record.update(feature.get("properties") or {})
-        if spatialite:
-            record["geometry"] = shape(feature["geometry"]).wkt
-        else:
-            record["geometry"] = feature["geometry"]
+        geometry = feature.get("geometry")
+        if spatialite and geometry:
+            geometry = shape(geometry).wkt
+
+        record["geometry"] = geometry
         yield record
 
 

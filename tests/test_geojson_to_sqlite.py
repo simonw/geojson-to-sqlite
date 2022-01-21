@@ -262,3 +262,21 @@ def test_ndjson_with_spatial_index(tmpdir):
     assert has_spatial_index_geometry_columns
     # And 44 rows in the quakes table
     assert db["features"].count == 44
+
+
+def test_missing_geometry(tmpdir):
+    quakes = testdir / "quakes.geojson"
+    db_path = str(tmpdir / "output.db")
+    result = CliRunner().invoke(cli.cli, [db_path, "features", str(quakes)])
+
+    assert 0 == result.exit_code, result.stdout
+
+    db = sqlite_utils.Database(db_path)
+    assert db["features"].count == 10
+
+    # this should have a null geometry
+    rows = list(db["features"].rows)
+    nulls = [row for row in rows if row["geometry"] is None]
+
+    assert len(rows) == 10
+    assert len(nulls) == 2
