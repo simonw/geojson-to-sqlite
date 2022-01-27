@@ -280,3 +280,69 @@ def test_missing_geometry(tmpdir):
 
     assert len(rows) == 10
     assert len(nulls) == 2
+
+
+def test_bundle_properties(tmpdir):
+    db_path = str(tmpdir / "output.db")
+    result = CliRunner().invoke(
+        cli.cli,
+        [
+            db_path,
+            "features",
+            str(testdir / "feature-collection.geojson"),
+            "--properties",
+        ],
+    )
+    assert 0 == result.exit_code, result.stdout
+    db = sqlite_utils.Database(db_path)
+    assert ["features"] == db.table_names()
+
+    assert db["features"].columns_dict == {
+        "properties": str,
+        "geometry": str,
+    }
+
+
+def test_bundle_properties_colname(tmpdir):
+    db_path = str(tmpdir / "output.db")
+    result = CliRunner().invoke(
+        cli.cli,
+        [
+            db_path,
+            "features",
+            str(testdir / "feature-collection.geojson"),
+            "--properties",
+            "props",
+        ],
+    )
+    assert 0 == result.exit_code, result.stdout
+    db = sqlite_utils.Database(db_path)
+    assert ["features"] == db.table_names()
+
+    assert db["features"].columns_dict == {
+        "props": str,
+        "geometry": str,
+    }
+
+
+@pytest.mark.skipif(not utils.find_spatialite(), reason="Could not find SpatiaLite")
+def test_bundle_properties_spatialite(tmpdir):
+    db_path = str(tmpdir / "output.db")
+    result = CliRunner().invoke(
+        cli.cli,
+        [
+            db_path,
+            "features",
+            str(testdir / "feature-collection.geojson"),
+            "--properties",
+            "--spatialite",
+        ],
+    )
+    assert 0 == result.exit_code, result.stdout
+    db = sqlite_utils.Database(db_path)
+    assert "features" in db.table_names()
+
+    assert db["features"].columns_dict == {
+        "properties": str,
+        "geometry": float,  # no idea why this is float, but it's consistent
+    }

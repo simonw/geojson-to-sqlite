@@ -16,12 +16,15 @@ class SpatiaLiteError(Exception):
     pass
 
 
-def yield_records(features, pk, spatialite):
+def yield_records(features, pk, properties, spatialite):
     for feature in features:
         record = {}
         if "id" in feature:
             record["id"] = feature["id"]
-        record.update(feature.get("properties") or {})
+        if properties:
+            record[properties] = feature.get("properties") or {}
+        else:
+            record.update(feature.get("properties") or {})
         geometry = feature.get("geometry")
         if spatialite and geometry:
             geometry = shape(geometry).wkt
@@ -36,6 +39,7 @@ def import_features(
     features,
     pk=None,
     alter=False,
+    properties="",
     spatialite=False,
     spatialite_mod=None,
     spatial_index=False,
@@ -46,7 +50,7 @@ def import_features(
     # grab a sample, for checking ids
     sample_geojson = list(itertools.islice(features, 100))
     features = itertools.chain(sample_geojson, features)
-    sample_records = list(yield_records(sample_geojson, pk, spatialite))
+    sample_records = list(yield_records(sample_geojson, pk, properties, spatialite))
 
     if pk is None and has_ids(sample_records):
         pk = "id"
@@ -74,7 +78,7 @@ def import_features(
 
     if pk:
         db[table].upsert_all(
-            yield_records(features, pk, spatialite),
+            yield_records(features, pk, properties, spatialite),
             conversions=conversions,
             pk=pk,
             alter=alter,
@@ -82,7 +86,7 @@ def import_features(
 
     else:
         db[table].insert_all(
-            yield_records(features, pk, spatialite), conversions=conversions
+            yield_records(features, pk, properties, spatialite), conversions=conversions
         )
 
     if spatial_index:
