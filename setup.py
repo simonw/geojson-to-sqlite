@@ -27,6 +27,5 @@ setup(
         geojson-to-sqlite=geojson_to_sqlite.cli:cli
     """,
     install_requires=["sqlite-utils>=2.2", "shapely"],
-    extras_require={"test": ["pytest"]},
-    tests_require=["geojson-to-sqlite[test]"],
+    extras_require={"test": ["pytest", "dirty-equals"]},
 )

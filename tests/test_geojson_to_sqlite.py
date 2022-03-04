@@ -1,4 +1,5 @@
 from click.testing import CliRunner
+from dirty_equals import IsApprox
 from geojson_to_sqlite import cli, utils
 import pytest
 import sqlite_utils
@@ -61,18 +62,44 @@ def test_feature_collection_spatialite(tmpdir):
     rows = db.execute_returning_dicts(
         "select slug, AsGeoJSON(geometry) as geometry from features"
     )
-    expected_rows = [
-        {
-            "slug": "uk",
-            "geometry": '{"type":"Polygon","coordinates":[[[-8.0859375,60.93043220292332],[-16.875,50.28933925329177],[-5.9765625,48.92249926375824],[4.21875,52.26815737376816],[1.0546875,60.06484046010452],[-8.0859375,60.93043220292332]]]}',
-        },
-        {
-            "slug": "usa",
-            "geometry": '{"type":"Polygon","coordinates":[[[-129.375,47.75409797968003],[-119.53125,33.43144133557529],[-96.6796875,25.48295117535531],[-85.4296875,24.20688962239802],[-77.34374999999998,25.48295117535531],[-61.52343749999999,44.33956524809713],[-84.375,51.39920565355377],[-100.8984375,50.06419173665909],[-115.3125,50.73645513701067],[-129.375,47.75409797968003]]]}',
-        },
-    ]
+    assert len(rows) == 2
+    uk, usa = rows
+    assert uk["slug"] == "uk"
+    assert usa["slug"] == "usa"
+    assert json.loads(uk["geometry"]) == {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [IsApprox(-8.0859374), IsApprox(60.93043220292332)],
+                [IsApprox(-16.875), IsApprox(50.28933925329177)],
+                [IsApprox(-5.9765625), IsApprox(48.92249926375824)],
+                [IsApprox(4.21875), IsApprox(52.26815737376816)],
+                [IsApprox(1.0546875), IsApprox(60.06484046010452)],
+                [IsApprox(-8.0859375), IsApprox(60.93043220292332)],
+            ]
+        ],
+    }
+    assert json.loads(usa["geometry"]) == {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [IsApprox(-129.375), IsApprox(47.75409797968003)],
+                [IsApprox(-119.53125), IsApprox(33.43144133557529)],
+                [IsApprox(-96.6796875), IsApprox(25.48295117535531)],
+                [IsApprox(-85.4296875), IsApprox(24.20688962239802)],
+                [IsApprox(-77.34374999999998), IsApprox(25.48295117535531)],
+                [IsApprox(-61.52343749999999), IsApprox(44.33956524809713)],
+                [IsApprox(-84.375), IsApprox(51.39920565355377)],
+                [IsApprox(-100.8984375), IsApprox(50.06419173665909)],
+                [IsApprox(-115.3125), IsApprox(50.73645513701067)],
+                [IsApprox(-129.375), IsApprox(47.75409797968003)],
+            ]
+        ],
+    }
+    initial_rows = db.execute_returning_dicts(
+        "select slug, AsGeoJSON(geometry) as geometry from features"
+    )
     assert ["slug"] == db["features"].pks
-    assert expected_rows == rows
     # Run it once more to check that upserting should work
     result = CliRunner().invoke(
         cli.cli,
@@ -87,7 +114,8 @@ def test_feature_collection_spatialite(tmpdir):
         catch_exceptions=False,
     )
     assert 0 == result.exit_code
-    assert expected_rows == db.execute_returning_dicts(
+    # Rows should have stayed the same
+    assert initial_rows == db.execute_returning_dicts(
         "select slug, AsGeoJSON(geometry) as geometry from features"
     )
 
