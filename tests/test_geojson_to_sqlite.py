@@ -262,3 +262,87 @@ def test_ndjson_with_spatial_index(tmpdir):
     assert has_spatial_index_geometry_columns
     # And 44 rows in the quakes table
     assert db["features"].count == 44
+
+
+def test_missing_geometry(tmpdir):
+    quakes = testdir / "quakes.geojson"
+    db_path = str(tmpdir / "output.db")
+    result = CliRunner().invoke(cli.cli, [db_path, "features", str(quakes)])
+
+    assert 0 == result.exit_code, result.stdout
+
+    db = sqlite_utils.Database(db_path)
+    assert db["features"].count == 10
+
+    # this should have a null geometry
+    rows = list(db["features"].rows)
+    nulls = [row for row in rows if row["geometry"] is None]
+
+    assert len(rows) == 10
+    assert len(nulls) == 2
+
+
+def test_bundle_properties(tmpdir):
+    db_path = str(tmpdir / "output.db")
+    result = CliRunner().invoke(
+        cli.cli,
+        [
+            db_path,
+            "features",
+            str(testdir / "feature-collection.geojson"),
+            "--properties",
+        ],
+    )
+    assert 0 == result.exit_code, result.stdout
+    db = sqlite_utils.Database(db_path)
+    assert ["features"] == db.table_names()
+
+    assert db["features"].columns_dict == {
+        "properties": str,
+        "geometry": str,
+    }
+
+
+def test_bundle_properties_colname(tmpdir):
+    db_path = str(tmpdir / "output.db")
+    result = CliRunner().invoke(
+        cli.cli,
+        [
+            db_path,
+            "features",
+            str(testdir / "feature-collection.geojson"),
+            "--properties",
+            "props",
+        ],
+    )
+    assert 0 == result.exit_code, result.stdout
+    db = sqlite_utils.Database(db_path)
+    assert ["features"] == db.table_names()
+
+    assert db["features"].columns_dict == {
+        "props": str,
+        "geometry": str,
+    }
+
+
+@pytest.mark.skipif(not utils.find_spatialite(), reason="Could not find SpatiaLite")
+def test_bundle_properties_spatialite(tmpdir):
+    db_path = str(tmpdir / "output.db")
+    result = CliRunner().invoke(
+        cli.cli,
+        [
+            db_path,
+            "features",
+            str(testdir / "feature-collection.geojson"),
+            "--properties",
+            "--spatialite",
+        ],
+    )
+    assert 0 == result.exit_code, result.stdout
+    db = sqlite_utils.Database(db_path)
+    assert "features" in db.table_names()
+
+    assert db["features"].columns_dict == {
+        "properties": str,
+        "geometry": float,  # no idea why this is float, but it's consistent
+    }

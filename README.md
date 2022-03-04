@@ -21,7 +21,7 @@ You can run this tool against a GeoJSON file like so:
 
 This will load all of the features from the `features.geojson` file into a table called `features`.
 
-Each row will have a `geometry` column containing the feature geometry, and columns for each of the keys found in any `properties` attached to those features.
+Each row will have a `geometry` column containing the feature geometry, and columns for each of the keys found in any `properties` attached to those features. (To bundle all properties into a single JSON object, use the `--properties` flag.)
 
 The table will be created the first time you run the command.
 
