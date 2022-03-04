@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.6, 3.7, 3.8, 3.9]
+        python-version: ["3.7", "3.8", "3.9", "3.10"]
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python ${{ matrix.python-version }}
@@ -23,6 +23,9 @@ jobs:
         key: ${{ runner.os }}-pip-${{ hashFiles('**/setup.py') }}
         restore-keys: |
           ${{ runner.os }}-pip-
+    - name: Install SpatiaLite
+      run: |
+        sudo apt-get install libsqlite3-mod-spatialite
     - name: Install dependencies
       run: |
         pip install -e '.[test]'
@@ -37,7 +40,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: '3.9'
+        python-version: "3.10"
     - uses: actions/cache@v2
       name: Configure pip caching
       with:
@@ -45,16 +48,14 @@ jobs:
         key: ${{ runner.os }}-publish-pip-${{ hashFiles('**/setup.py') }}
         restore-keys: |
           ${{ runner.os }}-publish-pip-
-    - name: Install SpatiaLite
-      run: |
-        sudo apt-get install libsqlite3-mod-spatialite
     - name: Install dependencies
       run: |
-        pip install setuptools wheel twine
+        pip install setuptools wheel twine build
     - name: Publish
       env:
         TWINE_USERNAME: __token__
         TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
       run: |
-        python setup.py sdist bdist_wheel
+        python -m build
         twine upload dist/*
+
