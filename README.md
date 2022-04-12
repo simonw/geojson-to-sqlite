@@ -29,6 +29,8 @@ On subsequent runs you can use the `--alter` option to add any new columns that 
 
 If your features have an `"id"` property it will be used as the primary key for the table. You can also use `--pk=PROPERTY` with the name of a different property to use that as the primary key instead. If you don't want to use the `"id"` as the primary key (maybe it contains duplicate values) you can use `--pk ''` to specify no primary key.
 
+Specifying a primary key also will allow you to upsert data into the rows instead of insert data into new rows.
+
 If no primary key is specified, a SQLite `rowid` column will be used.
 
 You can use `-` as the filename to import from standard input. For example:
