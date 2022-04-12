@@ -70,13 +70,15 @@ For large datasets, consider using newline-delimited JSON to stream features int
 
 For example, to load a day of earthquake reports from USGS:
 
-    $ geojson-to-sqlite quakes.db quakes tests/quakes.ndjson --nl --pk=id --spatialite
+    $ geojson-to-sqlite quakes.db quakes tests/quakes.ndjson \
+      --nl --pk=id --spatialite
 
 When using newline-delimited JSON, tables will also be created from the first feature, instead of guessing types based on the first 100 features.
 
 If you want to use a larger subset of your data to guess column types (for example, if some fields are inconsistent) you can use [fiona](https://fiona.readthedocs.io/en/latest/cli.html) to collect features into a single collection.
 
-    $ head tests/quakes.ndjson | fio collect | geojson-to-sqlite quakes.db quakes - --spatialite
+    $ head tests/quakes.ndjson | fio collect | \
+      geojson-to-sqlite quakes.db quakes - --spatialite
 
 This will take the first 10 lines from `tests/quakes.ndjson`, pass them to `fio collect`, which turns them into a single feature collection, and pass that, in turn, to `geojson-to-sqlite`.
 
@@ -86,10 +88,12 @@ Databases created using this tool can be explored and published using [Datasette
 
 The Datasette documentation includes a section on [how to use it to browse SpatiaLite databases](https://datasette.readthedocs.io/en/stable/spatialite.html).
 
-The [datasette-leaflet-geojson](https://github.com/simonw/datasette-leaflet-geojson) plugin can be used to visualize columns containing GeoJSON geometries on a [Leaflet](https://leafletjs.com/) map.
+The [datasette-leaflet-geojson](https://datasette.io/plugins/datasette-leaflet-geojson) plugin can be used to visualize columns containing GeoJSON geometries on a [Leaflet](https://leafletjs.com/) map.
 
 If you are using SpatiaLite you will need to output the geometry as GeoJSON in order for that plugin to work. You can do that using the SpaitaLite `AsGeoJSON()` function - something like this:
 
 ```sql
 select rowid, AsGeoJSON(geometry) from mytable limit 10
 ```
+
+The [datasette-geojson-map](https://datasette.io/plugins/datasette-geojson-map) is an alternative plugin which will automatically render SpatiaLite geometries as a Leaflet map on the corresponding table page, without needing you to call `AsGeoJSON(geometry)`.
