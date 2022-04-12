@@ -1,8 +1,9 @@
 from click.testing import CliRunner
 from dirty_equals import IsApprox
-from geojson_to_sqlite import cli, utils
+from geojson_to_sqlite import cli
 import pytest
 import sqlite_utils
+from sqlite_utils.utils import find_spatialite
 import pathlib
 import json
 
@@ -40,7 +41,7 @@ def test_single_feature(tmpdir):
     ] == rows
 
 
-@pytest.mark.skipif(not utils.find_spatialite(), reason="Could not find SpatiaLite")
+@pytest.mark.skipif(not find_spatialite(), reason="Could not find SpatiaLite")
 def test_single_feature_no_properties(tmpdir):
     feature = json.loads((testdir / "feature.geojson").read_text())
     feature["properties"] = {}
@@ -53,7 +54,7 @@ def test_single_feature_no_properties(tmpdir):
     assert "features" in db.table_names()
 
 
-@pytest.mark.skipif(not utils.find_spatialite(), reason="Could not find SpatiaLite")
+@pytest.mark.skipif(not find_spatialite(), reason="Could not find SpatiaLite")
 def test_feature_collection_spatialite(tmpdir):
     db_path = str(tmpdir / "output.db")
     result = CliRunner().invoke(
@@ -70,7 +71,7 @@ def test_feature_collection_spatialite(tmpdir):
     )
     assert 0 == result.exit_code, result.stdout
     db = sqlite_utils.Database(db_path)
-    utils.init_spatialite(db, utils.find_spatialite())
+    db.init_spatialite()
     assert {"features", "spatial_ref_sys"}.issubset(db.table_names())
     rows = db.execute_returning_dicts(
         "select slug, AsGeoJSON(geometry) as geometry from features"
@@ -133,7 +134,7 @@ def test_feature_collection_spatialite(tmpdir):
     )
 
 
-@pytest.mark.skipif(not utils.find_spatialite(), reason="Could not find SpatiaLite")
+@pytest.mark.skipif(not find_spatialite(), reason="Could not find SpatiaLite")
 @pytest.mark.parametrize("use_spatial_index", (True, False))
 def test_spatial_index(tmpdir, use_spatial_index):
     db_path = str(tmpdir / "output.db")
@@ -149,13 +150,43 @@ def test_spatial_index(tmpdir, use_spatial_index):
     )
     assert 0 == result.exit_code, result.stdout
     db = sqlite_utils.Database(db_path)
-    utils.init_spatialite(db, utils.find_spatialite())
+    db.init_spatialite()
     has_idx = "idx_features_geometry" in db.table_names()
     assert has_idx == use_spatial_index
     has_spatial_index_geometry_columns = bool(
         list(db["geometry_columns"].rows_where("spatial_index_enabled = 1"))
     )
     assert has_spatial_index_geometry_columns == use_spatial_index
+
+
+@pytest.mark.skipif(not find_spatialite(), reason="Could not find SpatiaLite")
+def test_spatial_index_twice(tmpdir):
+    db_path = str(tmpdir / "output.db")
+    args = [
+        db_path,
+        "features",
+        str(testdir / "feature-collection.geojson"),
+        "--spatialite",
+        "--spatial-index",
+    ]
+    result = CliRunner().invoke(
+        cli.cli,
+        args,
+        catch_exceptions=False,
+    )
+    assert 0 == result.exit_code, result.stdout
+
+    db = sqlite_utils.Database(db_path)
+    db.init_spatialite()
+    assert "idx_features_geometry" in db.table_names()
+
+    # now do it again
+    result = CliRunner().invoke(
+        cli.cli,
+        args,
+        catch_exceptions=False,
+    )
+    assert 0 == result.exit_code, result.stdout
 
 
 def test_feature_collection(tmpdir):
@@ -286,7 +317,7 @@ def test_ndjson(tmpdir):
     assert "id" in features.columns_dict and ["id"] == features.pks
 
 
-@pytest.mark.skipif(not utils.find_spatialite(), reason="Could not find SpatiaLite")
+@pytest.mark.skipif(not find_spatialite(), reason="Could not find SpatiaLite")
 def test_ndjson_with_spatial_index(tmpdir):
     ndjson = testdir / "quakes.ndjson"
     db_path = str(tmpdir / "output.db")
@@ -296,7 +327,7 @@ def test_ndjson_with_spatial_index(tmpdir):
     assert 0 == result.exit_code, result.stdout
     # There should be a spatial index
     db = sqlite_utils.Database(db_path)
-    utils.init_spatialite(db, utils.find_spatialite())
+    db.init_spatialite()
     has_spatial_index_geometry_columns = bool(
         list(db["geometry_columns"].rows_where("spatial_index_enabled = 1"))
     )
@@ -366,7 +397,7 @@ def test_bundle_properties_colname(tmpdir):
     }
 
 
-@pytest.mark.skipif(not utils.find_spatialite(), reason="Could not find SpatiaLite")
+@pytest.mark.skipif(not find_spatialite(), reason="Could not find SpatiaLite")
 def test_bundle_properties_spatialite(tmpdir):
     db_path = str(tmpdir / "output.db")
     result = CliRunner().invoke(
