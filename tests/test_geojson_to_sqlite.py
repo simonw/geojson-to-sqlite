@@ -41,6 +41,19 @@ def test_single_feature(tmpdir):
 
 
 @pytest.mark.skipif(not utils.find_spatialite(), reason="Could not find SpatiaLite")
+def test_single_feature_no_properties(tmpdir):
+    feature = json.loads((testdir / "feature.geojson").read_text())
+    feature["properties"] = {}
+    db_path = str(tmpdir / "output.db")
+    result = CliRunner().invoke(
+        cli.cli, [db_path, "features", "-", "--spatialite"], input=json.dumps(feature)
+    )
+    assert 0 == result.exit_code, result.stdout
+    db = sqlite_utils.Database(db_path)
+    assert "features" in db.table_names()
+
+
+@pytest.mark.skipif(not utils.find_spatialite(), reason="Could not find SpatiaLite")
 def test_feature_collection_spatialite(tmpdir):
     db_path = str(tmpdir / "output.db")
     result = CliRunner().invoke(

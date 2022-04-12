@@ -71,8 +71,14 @@ def import_features(
             # Create the table, using detected column types
             column_types = sqlite_utils.suggest_column_types(sample_records)
             column_types.pop("geometry")
+            remove_tmp_column = False
+            if not column_types:
+                remove_tmp_column = False
+                column_types["_tmp"] = str
             db[table].create(column_types, pk=pk)
             ensure_table_has_geometry(db, table)
+            if remove_tmp_column:
+                db[table].transform(drop={"_tmp"})
 
         conversions = {"geometry": "GeomFromText(?, 4326)"}
 
