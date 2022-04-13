@@ -13,7 +13,7 @@ import pdb
     required=True,
 )
 @click.argument("table", required=True)
-@click.argument("geojson", type=click.File(), required=True)
+@click.argument("geojson", type=click.File(), required=True, nargs=-1)
 @click.option("--nl", is_flag=True, help="Use newline-delimited GeoJSON features")
 @click.option("--pk", help="Column to use as a primary key")
 @click.option("--alter", is_flag=True, help="Add any missing columns")
@@ -42,20 +42,28 @@ def cli(
     spatial_index,
     spatialite_mod,
 ):
-    "Import GeoJSON into a SQLite database" ""
-    try:
-        features = utils.get_features(geojson, nl)
-    except (TypeError, ValueError) as e:
-        raise click.ClickException(str(e))
+    """
+    Import GeoJSON into a SQLite database
 
-    utils.import_features(
-        db_path,
-        table,
-        features,
-        pk=pk,
-        alter=alter,
-        properties=properties,
-        spatialite=spatialite,
-        spatialite_mod=spatialite_mod,
-        spatial_index=spatial_index,
-    )
+    To insert cities.geojson into a cities table in my.db:
+
+        geojson-to-sqlite my.db cities cities.geojson
+
+    This command can be passed more than one GeoJSON file
+    """
+    for file in geojson:
+        try:
+            features = utils.get_features(file, nl)
+            utils.import_features(
+                db_path,
+                table,
+                features,
+                pk=pk,
+                alter=alter,
+                properties=properties,
+                spatialite=spatialite,
+                spatialite_mod=spatialite_mod,
+                spatial_index=spatial_index,
+            )
+        except (TypeError, ValueError) as e:
+            raise click.ClickException(str(e))

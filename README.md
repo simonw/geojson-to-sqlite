@@ -27,6 +27,8 @@ The table will be created the first time you run the command.
 
 On subsequent runs you can use the `--alter` option to add any new columns that are missing from the table.
 
+You can pass more than one GeoJSON file, in which case the contents of all of the files will be inserted into the same table.
+
 If your features have an `"id"` property it will be used as the primary key for the table. You can also use `--pk=PROPERTY` with the name of a different property to use that as the primary key instead. If you don't want to use the `"id"` as the primary key (maybe it contains duplicate values) you can use `--pk ''` to specify no primary key.
 
 Specifying a primary key also will allow you to upsert data into the rows instead of insert data into new rows.

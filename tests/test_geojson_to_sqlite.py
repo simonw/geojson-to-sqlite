@@ -215,6 +215,24 @@ def test_feature_collection(tmpdir):
     assert ["rowid"] == db["features"].pks
 
 
+def test_multiple_files(tmpdir):
+    db_path = str(tmpdir / "output.db")
+    result = CliRunner().invoke(
+        cli.cli,
+        [
+            db_path,
+            "features",
+            str(testdir / "feature-collection.geojson"),
+            str(testdir / "feature.geojson"),
+        ],
+    )
+    assert 0 == result.exit_code, result.stdout
+    db = sqlite_utils.Database(db_path)
+    assert ["features"] == db.table_names()
+    rows = list(db["features"].rows)
+    assert sorted([r["slug"] for r in rows]) == ["uk", "uk", "usa"]
+
+
 def test_feature_collection_pk_and_alter(tmpdir):
     db_path = str(tmpdir / "output.db")
     result = CliRunner().invoke(
