@@ -7,6 +7,7 @@ import pdb
 
 
 @click.command()
+@click.version_option()
 @click.argument(
     "db_path",
     type=click.Path(file_okay=True, dir_okay=False, allow_dash=False),

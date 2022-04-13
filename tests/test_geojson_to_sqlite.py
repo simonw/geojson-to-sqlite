@@ -11,6 +11,12 @@ import json
 testdir = pathlib.Path(__file__).parent
 
 
+def test_version():
+    result = CliRunner().invoke(cli.cli, ["--version"])
+    assert result.exit_code == 0
+    assert result.output.startswith("cli, version ")
+
+
 def test_invalid(tmpdir):
     db_path = str(tmpdir / "output.db")
     result = CliRunner().invoke(
