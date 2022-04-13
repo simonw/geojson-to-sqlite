@@ -58,6 +58,7 @@ def test_single_feature_no_properties(tmpdir):
     assert 0 == result.exit_code, result.stdout
     db = sqlite_utils.Database(db_path)
     assert "features" in db.table_names()
+    assert set(db["features"].columns_dict.keys()) == {"geometry"}
 
 
 @pytest.mark.skipif(not find_spatialite(), reason="Could not find SpatiaLite")

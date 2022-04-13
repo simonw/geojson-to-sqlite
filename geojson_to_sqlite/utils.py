@@ -69,8 +69,8 @@ def import_features(
             column_types.pop("geometry")
             remove_tmp_column = False
             if not column_types:
-                remove_tmp_column = False
                 column_types["_tmp"] = str
+                remove_tmp_column = True
             db[table].create(column_types, pk=pk)
             ensure_table_has_geometry(db, table)
             if remove_tmp_column:
