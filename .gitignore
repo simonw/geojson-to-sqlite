@@ -8,3 +8,7 @@ venv
 *.egg-info
 *.db
 .vscode
+
+Pipfile
+Pipfile.lock
+build/

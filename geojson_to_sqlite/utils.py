@@ -1,15 +1,11 @@
 from shapely.geometry import shape
 import sqlite_utils
+from sqlite_utils.utils import find_spatialite
 
 import inspect
 import itertools
 import json
 import os
-
-SPATIALITE_PATHS = (
-    "/usr/lib/x86_64-linux-gnu/mod_spatialite.so",
-    "/usr/local/lib/mod_spatialite.dylib",
-)
 
 
 class SpatiaLiteError(Exception):
@@ -65,7 +61,7 @@ def import_features(
         if not lib:
             raise SpatiaLiteError("Could not find SpatiaLite module")
 
-        init_spatialite(db, lib)
+        db.init_spatialite(lib)
 
         if table not in db.table_names():
             # Create the table, using detected column types
@@ -96,7 +92,8 @@ def import_features(
         )
 
     if spatial_index:
-        db.conn.execute("select CreateSpatialIndex(?, ?)", [table, "geometry"])
+        # db.conn.execute("select CreateSpatialIndex(?, ?)", [table, "geometry"])
+        db[table].create_spatial_index("geometry")
 
     return db[table]
 
@@ -125,27 +122,9 @@ def get_features(geojson_file, nl=False):
     return geojson.get("features", [])
 
 
-def find_spatialite():
-    for path in SPATIALITE_PATHS:
-        if os.path.exists(path):
-            return path
-    return None
-
-
-def init_spatialite(db, lib):
-    db.conn.enable_load_extension(True)
-    db.conn.load_extension(lib)
-    # Initialize SpatiaLite if not yet initialized
-    if "spatial_ref_sys" in db.table_names():
-        return
-    db.conn.execute("select InitSpatialMetadata(1)")
-
-
 def ensure_table_has_geometry(db, table):
     if "geometry" not in db[table].columns_dict:
-        db.conn.execute(
-            "SELECT AddGeometryColumn(?, 'geometry', 4326, 'GEOMETRY', 2);", [table]
-        )
+        db[table].add_geometry_column("geometry", "GEOMETRY")
 
 
 def has_ids(features):
